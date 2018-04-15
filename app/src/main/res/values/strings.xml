@@ -1,3 +1,45 @@
 <resources>
     <string name="app_name">PopularMovies</string>
+
+    <string name="search">Search</string>
+
+    <string name="error_message">
+        Failed to get results. Please try again.
+    </string>
+
+    <string name="tmdb_attribution">
+        This product uses the TMDb API but is not endorsed or certified by TMDb.
+        (www.themoviedb.org)
+    </string>
+
+    <string name="action_settings">Settings</string>
+
+    <string name="pref_sort_label">Sort Type</string>
+    <string name="pref_sort_key" translatable="false">sort</string>
+
+    <string name="pref_sort_popular_label">Popular</string>
+    <string name="pref_sort_popular" translatable="false">popular</string>
+
+    <string name="pref_sort_top_rated_label">Top Rated</string>
+    <string name="pref_sort_top_rated" translatable="false">top_rated</string>
+
+    <string name="pref_sort_favorites_label">Favorites</string>
+    <string name="pref_sort_favorites" translatable="false">favorites</string>
+
+    <string name="play_button">Play Button</string>
+    <string name="review_button">Review Button</string>
+    <string name="movie_title_name">Movie Title Name</string>
+    <string name="movie_poster">Movie Poster</string>
+    <string name="add_to_local_favorites">Add to Local Favorites</string>
+    <string name="a_plot_synopsis">A plot synopsis</string>
+    <string name="user_rating">user rating</string>
+    <string name="release_date">release date</string>
+    <string name="trailers">Trailers</string>
+    <string name="reviews">Reviews</string>
+    <string name="popular">Popular</string>
+    <string name="top_rated">Top Rated</string>
+    <string name="favorites">Favorites</string>
+
+
+
 </resources>
