@@ -107,7 +107,7 @@
             android:textSize="16sp" />
 
         <TextView
-            android:id="@+id/textView5"
+            android:id="@+id/tv_trailers_label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="8dp"
@@ -123,7 +123,7 @@
             android:scrollbars="none" />
 
         <TextView
-            android:id="@+id/textView6"
+            android:id="@+id/tv_reviews_label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="8dp"
@@ -136,7 +136,7 @@
             android:layout_height="match_parent"
             android:drawSelectorOnTop="true"
             android:orientation="vertical"
-            android:scrollbars="none" >
+            android:scrollbars="none">
 
         </ListView>
 
@@ -156,16 +156,18 @@
                 android:layout_alignParentStart="true"
                 android:layout_alignParentTop="true"
                 android:layout_gravity="bottom"
-                app:srcCompat="@mipmap/ic_themoviedb" />
+                app:srcCompat="@mipmap/ic_themoviedb"
+                android:contentDescription="@string/themoviedb_logo"/>
 
             <TextView
                 android:id="@+id/tv_attribution"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignParentTop="true"
+                android:layout_centerVertical="true"
                 android:layout_gravity="center"
                 android:layout_toEndOf="@+id/imageView"
                 android:layout_toRightOf="@+id/imageView"
+                android:gravity="center_vertical"
                 android:padding="4dp"
                 android:text="@string/tmdb_attribution"
                 android:textSize="12sp" />
@@ -174,4 +176,3 @@
 
     </LinearLayout>
 </ScrollView>
-

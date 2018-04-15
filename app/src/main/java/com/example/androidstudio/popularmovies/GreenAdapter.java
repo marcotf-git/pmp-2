@@ -167,8 +167,6 @@ public class GreenAdapter extends RecyclerView.Adapter<GreenAdapter.MovieViewHol
             if(!moviesCursor.moveToPosition(position))
                 return;
 
-            long id = moviesCursor.getLong(moviesCursor.
-                            getColumnIndex(MovieslistContract.MovieslistEntry._ID));
             String movieId = moviesCursor.getString(moviesCursor.
                     getColumnIndex(MovieslistContract.MovieslistEntry.COLUMN_MOVIE_ID));
             Bitmap poster = DatabaseUtils.loadPosterFromDatabase(holder.context, movieId);
@@ -182,7 +180,7 @@ public class GreenAdapter extends RecyclerView.Adapter<GreenAdapter.MovieViewHol
                 holder.posterTextView.setVisibility(View.VISIBLE);
             }
 
-            holder.itemView.setTag(id);
+            holder.itemView.setTag(movieId);
         }
     }
 

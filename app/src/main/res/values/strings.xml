@@ -40,6 +40,8 @@
     <string name="top_rated">Top Rated</string>
     <string name="favorites">Favorites</string>
 
+    <string name="themoviedb_logo">TMDb logo</string>
+
 
 
 </resources>

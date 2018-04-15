@@ -1,10 +1,12 @@
 package com.example.androidstudio.popularmovies;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
@@ -20,10 +22,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.androidstudio.popularmovies.data.MovieslistContract;
-import com.example.androidstudio.popularmovies.data.MovieslistDbHelper;
 import com.example.androidstudio.popularmovies.utilities.NetworkUtils;
 
 import java.io.IOException;
@@ -51,9 +51,9 @@ public class MainActivity extends AppCompatActivity
     private static boolean flag_show_favorites;
 
 
-    private SQLiteDatabase mDb;
-
     private ItemTouchHelper mItemTouchHelper = null;
+
+    private Cursor mData;
 
 
 
@@ -302,6 +302,11 @@ public class MainActivity extends AppCompatActivity
         super.onDestroy();
         PreferenceManager.getDefaultSharedPreferences(this)
                 .unregisterOnSharedPreferenceChangeListener(this);
+
+        // Prevents problems with database
+        if(null != mData) {
+            mData.close();
+        }
     }
 
     @Override
@@ -418,12 +423,10 @@ public class MainActivity extends AppCompatActivity
 
             Log.v("updateView", "favorites view update");
 
-            // Reload data from local database
-            MovieslistDbHelper dbHelper = new MovieslistDbHelper(this);
-            mDb = dbHelper.getReadableDatabase();
-            Cursor cursor = getAllMovies(mDb);
-            mAdapter.setMoviesCursorData(cursor);
-            //mDb.close();
+            if(null != mData) {
+                mData.close();
+            }
+            new MoviesFetchTask().execute();
 
             // Load item touch helper (is used for local data)
             ItemTouchHelper.Callback touchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT |
@@ -438,14 +441,15 @@ public class MainActivity extends AppCompatActivity
                 public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
 
                     // remove the movie
-                    long id = (long) viewHolder.itemView.getTag();
-                    removeMovie(id);
+                    String movieId = (String) viewHolder.itemView.getTag();
+
+                    new MovieDeleteTask().execute(movieId);
 
                     // update view
-                    MovieslistDbHelper dbHelper = new MovieslistDbHelper(MainActivity.this);
-                    mDb = dbHelper.getReadableDatabase();
-                    Cursor cursor = getAllMovies(mDb);
-                    mAdapter.setMoviesCursorData(cursor);
+                    if(null != mData) {
+                        mData.close();
+                    }
+                    new MoviesFetchTask().execute();
 
                 }
 
@@ -528,34 +532,63 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-    private Cursor getAllMovies(SQLiteDatabase db) {
+    // Use an async task to do the data fetch off of the main thread.
+    public class MoviesFetchTask extends AsyncTask<Void, Void, Cursor> {
 
-        return db.query(
-                MovieslistContract.MovieslistEntry.TABLE_NAME,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-        );
-    }
-
-
-    private boolean removeMovie(long id){
-
-        MovieslistDbHelper dbHelper = new MovieslistDbHelper(MainActivity.this);
-        mDb = dbHelper.getWritableDatabase();
-
-        int nRowsDeleted = mDb.delete(MovieslistContract.MovieslistEntry.TABLE_NAME,
-                MovieslistContract.MovieslistEntry._ID + "=" + id, null);
-        if (nRowsDeleted > 0) {
-            Toast.makeText(this, "Deleted from favorites", Toast.LENGTH_SHORT).show();
+        // Invoked on a background thread
+        @Override
+        protected Cursor doInBackground(Void... params) {
+            // Make the query to get the data
+            // Get the content resolver
+            ContentResolver resolver = getContentResolver();
+            // Call the query method on the resolver with the correct Uri from the contract class
+            Cursor cursor = resolver.query(MovieslistContract.MovieslistEntry.CONTENT_URI,
+                    null, null, null, null);
+            return cursor;
         }
 
-        mDb.close();
-
-        return (nRowsDeleted > 0);
+        // Invoked on UI thread
+        @Override
+        protected void onPostExecute(Cursor cursor) {
+            super.onPostExecute(cursor);
+            // Set the data for MainActivity
+            mData = cursor;
+            // Set the data for the adapter
+            mAdapter.setMoviesCursorData(cursor);
+        }
     }
+
+
+    // Use an async task to do the data deletion off of the main thread.
+    public class MovieDeleteTask extends AsyncTask<String, Void, Integer> {
+
+        // Invoked on a background thread
+        @Override
+        protected Integer doInBackground(String... params) {
+
+            // Make the query to get the data
+
+            // Get the content resolver
+            ContentResolver resolver = getContentResolver();
+            String movieId = params[0];
+
+            Uri deleteUri = MovieslistContract.MovieslistEntry.CONTENT_URI.buildUpon()
+                    .appendPath(movieId).build();
+
+            // Call the delete method on the resolver with the correct Uri from the contract class
+            int rowsDeleted = resolver.delete(deleteUri, null, null);
+
+            return rowsDeleted;
+        }
+
+        // Invoked on UI thread
+        @Override
+        protected void onPostExecute(Integer rowsDeleted) {
+            super.onPostExecute(rowsDeleted);
+            Log.v("onPostExecute","rows deleted:" + rowsDeleted);
+        }
+
+    }
+
 
 }

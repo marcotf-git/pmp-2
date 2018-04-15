@@ -2,8 +2,7 @@
 <resources>
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorPrimaryLight">#e8eaf6</color>
     <color name="colorAccent">#FF4081</color>
 
-    <!-- Background color for list item -->
-    <color name="list_background">#FFFFFF</color>
 </resources>

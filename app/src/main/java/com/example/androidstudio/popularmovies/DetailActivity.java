@@ -1,14 +1,14 @@
 package com.example.androidstudio.popularmovies;
 
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.SQLException;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
@@ -25,7 +25,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.androidstudio.popularmovies.data.MovieslistContract;
-import com.example.androidstudio.popularmovies.data.MovieslistDbHelper;
 import com.example.androidstudio.popularmovies.data.PopularMoviesPreferences;
 import com.example.androidstudio.popularmovies.utilities.DatabaseUtils;
 import com.example.androidstudio.popularmovies.utilities.NetworkUtils;
@@ -51,6 +50,8 @@ public class DetailActivity extends AppCompatActivity
     private TextView mDisplayVoteAverage;
     private TextView mDisplayReleaseDate;
     private Button mAddToFavorites;
+    private TextView mTrailersLabel;
+    private TextView mReviewsLabel;
 
     // The id and data from the movie being viewed in this activity
     private String movieId = "";
@@ -77,7 +78,6 @@ public class DetailActivity extends AppCompatActivity
     // flag that controls if is showing the favorites (will load from stored JSON)
     private boolean showingFavorites;
 
-    private SQLiteDatabase mDb;
 
 
     @Override
@@ -91,6 +91,9 @@ public class DetailActivity extends AppCompatActivity
         mDisplayOverview = findViewById(R.id.tv_overview);
         mDisplayVoteAverage = findViewById(R.id.tv_vote_average);
         mDisplayReleaseDate = findViewById(R.id.tv_release_date);
+
+        mTrailersLabel = findViewById(R.id.tv_trailers_label);
+        mReviewsLabel = findViewById(R.id.tv_reviews_label);
 
         mAddToFavorites = findViewById(R.id.bt_add_favorites);
 
@@ -120,7 +123,6 @@ public class DetailActivity extends AppCompatActivity
             movieReviewsStringJSON = intentThatStartedThisActivity.getStringExtra("movieReviewsStringJSON");
 
             showingFavorites = intentThatStartedThisActivity.getBooleanExtra("showFavorites", false);
-
 
             Log.v("onCreate", "movieTrailersStringJSON:" + "-" + movieTrailersStringJSON + "-");
             Log.v("onCreate", "movieReviewsStringJSON:" + "-" + movieReviewsStringJSON + "-");
@@ -324,9 +326,7 @@ public class DetailActivity extends AppCompatActivity
 
             }
 
-            if(isMovieInFavorites(movieTitle)){
-                mAddToFavorites.setEnabled(false);
-            }
+            new MovieFetchTask().execute(movieId);
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -412,6 +412,12 @@ public class DetailActivity extends AppCompatActivity
             }
 
         });
+
+        // Adjust the label
+        if (nVideos == 0){
+            mTrailersLabel.setVisibility(View.GONE);
+        }
+
     }
 
 
@@ -488,6 +494,12 @@ public class DetailActivity extends AppCompatActivity
             }
 
         });
+
+        // Adjust the label
+        if (nReviews == 0){
+            mReviewsLabel.setVisibility(View.GONE);
+        }
+
     }
 
 
@@ -497,80 +509,88 @@ public class DetailActivity extends AppCompatActivity
      */
     public void addToFavoriteslist(View view){
 
-        long added = addNewMovie();
+        new MovieInsertTask().execute();
 
-        if (added > 0) {
-            Toast.makeText(this, "Added to favorites", Toast.LENGTH_SHORT).show();
-            mAddToFavorites.setEnabled(false);
-        } else {
-            Toast.makeText(this, "Error: the item was not added!", Toast.LENGTH_SHORT).show();
+    }
+
+
+    // Use an async task to do the data deletion off of the main thread.
+    public class MovieInsertTask extends AsyncTask<Void, Void, Uri> {
+
+        // Invoked on a background thread
+        @Override
+        protected Uri doInBackground(Void... params) {
+
+            // Make the query to get the data
+
+            // Get the content resolver
+            ContentResolver resolver = getContentResolver();
+
+            // This is necessary to pass the values
+            ContentValues cv = new ContentValues();
+
+            cv.put(MovieslistContract.MovieslistEntry.COLUMN_MOVIE_TITLE, movieTitle);
+            cv.put(MovieslistContract.MovieslistEntry.COLUMN_MOVIE_ID, movieId);
+            cv.put(MovieslistContract.MovieslistEntry.COLUMN_INFO_JSON, movieInfoStringJSON);
+            cv.put(MovieslistContract.MovieslistEntry.COLUMN_TRAILERS_JSON, movieTrailersStringJSON);
+            cv.put(MovieslistContract.MovieslistEntry.COLUMN_REVIEWS_JSON, movieReviewsStringJSON);
+            cv.put(MovieslistContract.MovieslistEntry.COLUMN_POSTER, posterImageArray);
+
+            // Call the insert method on the resolver with the correct Uri from the contract class
+            Uri uri = resolver.insert(MovieslistContract.MovieslistEntry.CONTENT_URI, cv);
+
+            return uri;
+        }
+
+        // Invoked on UI thread
+        @Override
+        protected void onPostExecute(Uri uri) {
+            super.onPostExecute(uri);
+
+            Context context = DetailActivity.this;
+
+            if (null != uri) {
+                Toast.makeText(context, "Added to favorites", Toast.LENGTH_SHORT).show();
+                mAddToFavorites.setEnabled(false);
+            } else {
+                Toast.makeText(context, "Error: the item was not added!", Toast.LENGTH_SHORT).show();
+            }
         }
 
     }
 
 
-    private long addNewMovie() {
+    // Use an async task to do the data fetch off of the main thread.
+    public class MovieFetchTask extends AsyncTask<String, Void, Cursor> {
 
-        MovieslistDbHelper dbHelper = new MovieslistDbHelper(this);
-        mDb = dbHelper.getWritableDatabase();
+        // Invoked on a background thread
+        @Override
+        protected Cursor doInBackground(String... params) {
+            // Make the query to get the data
+            // Get the content resolver
+            ContentResolver resolver = getContentResolver();
 
-        // This is necessary to pass the values onto the insert query
-        ContentValues cv = new ContentValues();
+            String selection = MovieslistContract.MovieslistEntry.COLUMN_MOVIE_ID + "=?";
+            String movieId = params[0];
+            String[] selectionArgs = { movieId };
 
-        cv.put(MovieslistContract.MovieslistEntry.COLUMN_MOVIE_TITLE, movieTitle);
-        cv.put(MovieslistContract.MovieslistEntry.COLUMN_MOVIE_ID, movieId);
-        cv.put(MovieslistContract.MovieslistEntry.COLUMN_INFO_JSON, movieInfoStringJSON);
-        cv.put(MovieslistContract.MovieslistEntry.COLUMN_TRAILERS_JSON, movieTrailersStringJSON);
-        cv.put(MovieslistContract.MovieslistEntry.COLUMN_REVIEWS_JSON, movieReviewsStringJSON);
-        cv.put(MovieslistContract.MovieslistEntry.COLUMN_POSTER, posterImageArray);
-
-        Log.v("addNewMovie", " size of the poster byte array:" + posterImageArray.length);
-
-        long rows = -1;
-
-        try
-        {
-            mDb.beginTransaction();
-            rows = mDb.insert(MovieslistContract.MovieslistEntry.TABLE_NAME, null, cv);
-            mDb.setTransactionSuccessful();
-        }
-        catch (SQLException e) {
-            e.printStackTrace();
-        }
-        finally
-        {
-            mDb.endTransaction();
+            // Call the query method on the resolver with the correct Uri from the contract class
+            Cursor cursor = resolver.query(MovieslistContract.MovieslistEntry.CONTENT_URI,
+                    null, selection, selectionArgs, null);
+            return cursor;
         }
 
-        mDb.close();
+        // Invoked on UI thread
+        @Override
+        protected void onPostExecute(Cursor cursor) {
+           super.onPostExecute(cursor);
 
-        return rows;
+           if(cursor.getCount() > 0) {
+               mAddToFavorites.setEnabled(false);
+           }
 
-    }
-
-
-    private boolean isMovieInFavorites(String movieTitle){
-
-        MovieslistDbHelper dbHelper = new MovieslistDbHelper(this);
-        mDb = dbHelper.getReadableDatabase();
-
-        String[] selectionArgs = { movieTitle };
-
-        Cursor cursor = mDb.query(
-                MovieslistContract.MovieslistEntry.TABLE_NAME,
-                null,
-                MovieslistContract.MovieslistEntry.COLUMN_MOVIE_TITLE + " = ? ",
-                selectionArgs,
-                null,
-                null,
-                null
-        );
-
-        long count =  cursor.getCount();
-
-        cursor.close();
-
-        return (count > 0);
+           cursor.close();
+        }
     }
 
 

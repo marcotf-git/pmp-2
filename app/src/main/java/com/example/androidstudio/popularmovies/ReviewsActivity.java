@@ -8,14 +8,13 @@ import android.widget.TextView;
 
 public class ReviewsActivity extends AppCompatActivity {
 
-    private TextView mTextReview;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_review);
 
+        TextView mTextReview;
         mTextReview = findViewById(R.id.tv_content_review);
 
         Intent intentThatStartedThisActivity = getIntent();

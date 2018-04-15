@@ -28,7 +28,8 @@ public class PopularMoviesPreferences {
     public static String getThemoviedbMoviesUrl(Context context) {
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        String moviesQueryOption = sharedPreferences.getString(context.getString(R.string.pref_sort_key), "");
+        String moviesQueryOption = sharedPreferences.getString(context.getString(R.string.pref_sort_key),
+                context.getString(R.string.pref_sort_popular));
 
         switch (moviesQueryOption) {
             case "popular":
