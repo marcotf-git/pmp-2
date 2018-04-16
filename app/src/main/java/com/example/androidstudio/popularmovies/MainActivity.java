@@ -56,9 +56,9 @@ public class MainActivity extends AppCompatActivity
 
     private Cursor mData;
 
-    // This variables will handle the saving and restoring of the recycler view state
-    private static final String BUNDLE_RECYCLER_LAYOUT = "classname.recycler.layout";
-    private Parcelable mSavedRecyclerLayoutState;
+    // Fields for handling the saving and restoring of view state
+    private static final String RECYCLER_VIEW_STATE = "recyclerViewState";
+    private Parcelable recyclerViewState;
 
 
     @Override
@@ -67,6 +67,7 @@ public class MainActivity extends AppCompatActivity
         Log.v("onCreate", "on create");
 
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
         // Register MainActivity as a OnSharedPreferenceChangedListener in onCreate
@@ -156,31 +157,27 @@ public class MainActivity extends AppCompatActivity
             getSupportLoaderManager().initLoader(loaderId, bundleForLoader, callback);
         }
 
+        // Load information to the view
         updateView();
 
     }
 
 
-    // This method is saving the state of the recycler view
+    // This method is saving the position of the recycler view
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
-
+        Parcelable recyclerViewState = mMoviesList.getLayoutManager().onSaveInstanceState();
+        savedInstanceState.putParcelable(RECYCLER_VIEW_STATE, recyclerViewState);
         super.onSaveInstanceState(savedInstanceState);
-        savedInstanceState.putParcelable(BUNDLE_RECYCLER_LAYOUT, mMoviesList.getLayoutManager().onSaveInstanceState());
     }
 
-    // This method is loading the saved state of the recycler view
+    // This method is loading the saved position of the recycler view
     // There is also a call on the post execute method in the loader, for updating the view
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-
-        if(savedInstanceState != null)
-        {
-            mSavedRecyclerLayoutState = savedInstanceState.getParcelable(BUNDLE_RECYCLER_LAYOUT);
-            //mMoviesList.getLayoutManager().onRestoreInstanceState(mSavedRecyclerLayoutState);
-            // The state will be reloaded only in the loader
-        }
+        recyclerViewState = savedInstanceState.getParcelable(RECYCLER_VIEW_STATE);
+        mMoviesList.getLayoutManager().onRestoreInstanceState(recyclerViewState);
     }
 
 
@@ -300,7 +297,8 @@ public class MainActivity extends AppCompatActivity
             // This will restore the state of the recycler view, only in case of the screen rotation.
             // If the user just updates the preferences, the state will not be restored.
             if (!flag_preferences_updates) {
-                mMoviesList.getLayoutManager().onRestoreInstanceState(mSavedRecyclerLayoutState);
+                //mMoviesList.getLayoutManager().scrollToPosition(viewPosition);
+                mMoviesList.getLayoutManager().onRestoreInstanceState(recyclerViewState);
             }
 
         } else {
