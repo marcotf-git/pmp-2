@@ -1,4 +1,8 @@
 <resources>
     <!-- Height of each list item -->
     <dimen name="list_item_height">88dp</dimen>
+    <dimen name="error_message_text_size">22sp</dimen>
+    <dimen name="review_text_size">16sp</dimen>
+    <dimen name="logo_text_size">12sp</dimen>
+    <dimen name="movie_title_text_size">24sp</dimen>
 </resources>

@@ -16,6 +16,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:id="@+id/ll_detail"
         android:paddingBottom="16dp"
         android:paddingLeft="16dp"
         android:paddingRight="16dp"
@@ -30,7 +31,7 @@
             android:focusableInTouchMode="true"
             android:focusedByDefault="true"
             android:paddingBottom="8dp"
-            android:textSize="24sp"
+            android:textSize="@dimen/movie_title_text_size"
             android:hint="@string/movie_title_name" />
 
         <RelativeLayout
@@ -75,7 +76,7 @@
             android:layout_height="wrap_content"
             android:hint="@string/a_plot_synopsis"
             android:padding="8dp"
-            android:textSize="16sp" />
+            android:textSize="@dimen/review_text_size" />
 
         <TextView
             android:id="@+id/textView3"
@@ -89,7 +90,7 @@
             android:layout_height="wrap_content"
             android:hint="@string/user_rating"
             android:padding="8dp"
-            android:textSize="16sp" />
+            android:textSize="@dimen/review_text_size" />
 
         <TextView
             android:id="@+id/textView4"
@@ -104,7 +105,7 @@
             android:layout_height="wrap_content"
             android:hint="@string/release_date"
             android:padding="8dp"
-            android:textSize="16sp" />
+            android:textSize="@dimen/review_text_size"/>
 
         <TextView
             android:id="@+id/tv_trailers_label"
@@ -170,7 +171,7 @@
                 android:gravity="center_vertical"
                 android:padding="4dp"
                 android:text="@string/tmdb_attribution"
-                android:textSize="12sp" />
+                android:textSize="@dimen/logo_text_size" />
 
         </RelativeLayout>
 

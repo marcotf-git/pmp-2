@@ -28,7 +28,9 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 
-// Verify that TaskContentProvider extends from ContentProvider and implements required methods
+/**
+ * This is the content provider class
+ */
 public class MovieContentProvider extends ContentProvider {
 
     // Define final integer constants for the directory of movies and a single item.

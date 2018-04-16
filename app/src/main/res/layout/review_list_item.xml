@@ -2,8 +2,8 @@
 
 <!-- Layout for a single list item -->
 <FrameLayout
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/review_list_item"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -33,7 +33,6 @@
             android:paddingEnd="8dp"
             android:paddingLeft="8dp"
             android:paddingRight="8dp"
-            android:textAppearance="?android:textAppearanceListItem"
             android:textColor="@android:color/black"
             android:textStyle="normal"
             tools:text="review author" />

@@ -41,6 +41,7 @@ public class GreenAdapter extends RecyclerView.Adapter<GreenAdapter.MovieViewHol
     // Store what type of the data to be displayed
     private boolean showFavorites;
 
+
     /**
      * An on-click handler that we've defined to make it easy for an Activity to interface with
      * our RecyclerView

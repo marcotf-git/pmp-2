@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
@@ -16,6 +17,7 @@ import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -50,11 +52,13 @@ public class MainActivity extends AppCompatActivity
     // This flag will control the app behaviour based on the type of the data being viewed and sorted
     private static boolean flag_show_favorites;
 
-
     private ItemTouchHelper mItemTouchHelper = null;
 
     private Cursor mData;
 
+    // This variables will handle the saving and restoring of the recycler view state
+    private static final String BUNDLE_RECYCLER_LAYOUT = "classname.recycler.layout";
+    private Parcelable mSavedRecyclerLayoutState;
 
 
     @Override
@@ -103,7 +107,8 @@ public class MainActivity extends AppCompatActivity
          *
          * We are using the GridLayoutManager.
          */
-        GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
+        int nColumns = numberOfColumns();
+        GridLayoutManager layoutManager = new GridLayoutManager(this, nColumns);
 
         mMoviesList.setLayoutManager(layoutManager);
 
@@ -153,11 +158,29 @@ public class MainActivity extends AppCompatActivity
 
         updateView();
 
-//        MovieslistDbHelper dbHelper = new MovieslistDbHelper(this);
-//        mDb = dbHelper.getWritableDatabase();
-//        TestUtil.insertFakeData(mDb);
-//        mDb.close();
+    }
 
+
+    // This method is saving the state of the recycler view
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putParcelable(BUNDLE_RECYCLER_LAYOUT, mMoviesList.getLayoutManager().onSaveInstanceState());
+    }
+
+    // This method is loading the saved state of the recycler view
+    // There is also a call on the post execute method in the loader, for updating the view
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        if(savedInstanceState != null)
+        {
+            mSavedRecyclerLayoutState = savedInstanceState.getParcelable(BUNDLE_RECYCLER_LAYOUT);
+            //mMoviesList.getLayoutManager().onRestoreInstanceState(mSavedRecyclerLayoutState);
+            // The state will be reloaded only in the loader
+        }
     }
 
 
@@ -261,9 +284,11 @@ public class MainActivity extends AppCompatActivity
         };
     }
 
-    /* When the load is finished, show either the data or an error message if there is no data. */
+    // When the load is finished, show either the data or an error message if there is no data.
     @Override
     public void onLoadFinished(Loader<String> loader, String themoviedbSearchResults) {
+
+        Log.v("onLoadFinished", "loader id:" + loader.getId());
 
         mLoadingIndicator.setVisibility(View.INVISIBLE);
 
@@ -271,6 +296,13 @@ public class MainActivity extends AppCompatActivity
             showMoviesDataView();
             MoviesBox moviesBox = new MoviesBox(themoviedbSearchResults);
             mAdapter.setMoviesHttpQueryData(moviesBox);
+
+            // This will restore the state of the recycler view, only in case of the screen rotation.
+            // If the user just updates the preferences, the state will not be restored.
+            if (!flag_preferences_updates) {
+                mMoviesList.getLayoutManager().onRestoreInstanceState(mSavedRecyclerLayoutState);
+            }
+
         } else {
             showErrorMessage();
         }
@@ -296,7 +328,6 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    // Override onDestroy and unregister MainActivity as a SharedPreferenceChangedListener
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -315,8 +346,8 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    /*
-     * Sets the option menu that choose which kind of movie search will be executed,
+    /**
+     * This method sets the option menu that choose which kind of movie search will be executed,
      * if popular or top rated
      */
     @Override
@@ -372,8 +403,6 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-
-
     /**
      * This method is used when we are resetting data, so that at one point in time during a
      * refresh of our data, you can see that there is no data showing.
@@ -383,7 +412,7 @@ public class MainActivity extends AppCompatActivity
         mMoviesList.setAdapter(mAdapter);
     }
 
-    /*
+    /**
      * Helper function to reload data and update the view
      */
     public void updateView() {
@@ -460,6 +489,7 @@ public class MainActivity extends AppCompatActivity
 
         }
 
+        // Set the visibility for the view
         showMoviesDataView();
     }
 
@@ -589,6 +619,23 @@ public class MainActivity extends AppCompatActivity
         }
 
     }
+
+    // Helper method for calc the number of columns based on screen
+    private int numberOfColumns() {
+
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+
+        // You can change this divider to adjust the size of the poster
+        int widthDivider = 400;
+        int width = displayMetrics.widthPixels;
+        int nColumns = width / widthDivider;
+        if (nColumns < 2) return 2; //to keep the grid aspect
+
+        return nColumns;
+    }
+
+
 
 
 }

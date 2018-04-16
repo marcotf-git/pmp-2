@@ -89,3 +89,5 @@ https://stackoverflow.com/questions/3572463/what-is-context-on-android?rq=1
 https://stackoverflow.com/questions/9357668/how-to-store-image-in-sqlite-database
 
 https://stackoverflow.com/questions/23078041/how-to-retrieve-an-image-from-an-imageview-and-store-it-in-an-sqlite-database-in
+
+https://stackoverflow.com/questions/27816217/how-to-save-recyclerviews-scroll-position-using-recyclerview-state?noredirect=1&lq=1
